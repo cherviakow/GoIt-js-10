@@ -5,7 +5,9 @@ import Notiflix from 'notiflix';
 const breedSelectRef = document.querySelector('.breed-select');
 const catInfoRef = document.querySelector('.cat-info');
 const loaderRef = document.querySelector('.loader');
-// const errorRef = document.querySelector('.error');
+const errorRef = document.querySelector('.error');
+
+errorRef.classList.add('is-hidden');
 
 breedSelectRef.addEventListener('change', selectCat);
 
@@ -15,7 +17,7 @@ function selectCat(event) {
   catInfoRef.innerHTML = '';
   loaderRef.classList.remove('hide');
 
-  // setTimeout(() => {
+ 
   fetchCatByBreed(event.target.value)
     .then(({ data }) => {
       let { name, description, temperament } = data[0].breeds[0];
@@ -26,9 +28,7 @@ function selectCat(event) {
         temperament,
         url,
       });
-    })
-    // .catch(error => errorRef.classList.remove('hide'))
-    .catch(() =>
+    }).catch(() =>
       Notiflix.Notify.failure(
         'Oops! Something went wrong! Try reloading the page!',
         {
@@ -37,13 +37,12 @@ function selectCat(event) {
       )
     )
     .finally(loaderRef.classList.add('hide'));
-  // }, 1000);
+  
 }
 
 function loadBreeds() {
   loaderRef.classList.remove('hide');
 
-  // setTimeout(() => {
   return fetchBreeds()
     .then(({ data }) => {
       breedSelectRef.classList.remove('hide');
@@ -62,7 +61,6 @@ function loadBreeds() {
       )
     )
     .finally(loaderRef.classList.add('hide'));
-  // }, 1000);
 }
 
 function markupOptions(data) {

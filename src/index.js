@@ -1,90 +1,81 @@
-import { fetchBreeds, fetchCatByBreed } from './cat-api';
 import SlimSelect from 'slim-select';
-import 'slim-select/dist/slimselect.css';
+import { fetchBreeds, fetchCatByBreed } from './cat-api';
 import Notiflix from 'notiflix';
 
-const refs = {
-  breedEl: document.querySelector('.breed-select'),
-  catInfoEl: document.querySelector('.cat-info'),
-  loadingEl: document.querySelector('.loader-p'),
-  errorEl: document.querySelector('.error'),
-};
+const breedSelectRef = document.querySelector('.breed-select');
+const catInfoRef = document.querySelector('.cat-info');
+const loaderRef = document.querySelector('.loader');
+// const errorRef = document.querySelector('.error');
 
-refs.breedEl.addEventListener('change', findCatInfo);
+breedSelectRef.addEventListener('change', selectCat);
 
-fetchBreeds().then(addAllCatsToList).catch(showError);
-fetchCatByBreed;
+loadBreeds();
 
-let shownCat = '';
+function selectCat(event) {
+  catInfoRef.innerHTML = '';
+  loaderRef.classList.remove('hide');
 
-function addAllCatsToList(data) {
-  const catOption = data
-    .map(cat => {
-      const catOption = `<option value="${cat.id}">${cat.name}</option>`;
-      return catOption;
+  // setTimeout(() => {
+  fetchCatByBreed(event.target.value)
+    .then(({ data }) => {
+      let { name, description, temperament } = data[0].breeds[0];
+      let { url } = data[0];
+      catInfoRef.innerHTML = markupCatCard({
+        name,
+        description,
+        temperament,
+        url,
+      });
     })
+    // .catch(error => errorRef.classList.remove('hide'))
+    .catch(() =>
+      Notiflix.Notify.failure(
+        'Oops! Something went wrong! Try reloading the page!',
+        {
+          position: 'left-top',
+        }
+      )
+    )
+    .finally(loaderRef.classList.add('hide'));
+  // }, 1000);
+}
+
+function loadBreeds() {
+  loaderRef.classList.remove('hide');
+
+  // setTimeout(() => {
+  return fetchBreeds()
+    .then(({ data }) => {
+      breedSelectRef.classList.remove('hide');
+      breedSelectRef.innerHTML = markupOptions(data);
+      new SlimSelect({
+        select: breedSelectRef,
+        settings: {},
+      });
+    })
+    .catch(() =>
+      Notiflix.Notify.failure(
+        'Oops! Something went wrong! Try reloading the page!',
+        {
+          position: 'left-top',
+        }
+      )
+    )
+    .finally(loaderRef.classList.add('hide'));
+  // }, 1000);
+}
+
+function markupOptions(data) {
+  return data
+    .map(({ id, name }) => `<option value=${id}>${name}</option>`)
     .join('');
-  refs.breedEl.insertAdjacentHTML('beforeend', catOption);
-
-  new SlimSelect({
-    select: '#breed-select',
-  });
-
-  refs.breedEl.classList.remove('is-hidden');
 }
 
-function findCatInfo(event) {
-  const catId = event.currentTarget.value;
-  if (catId === shownCat) {
-    return;
-  }
-  makeCatInfoInvisible();
-  makeLoadingVisible();
-  fetchCatByBreed(catId).then(showCatInfo).catch(showError);
-}
-
-function showCatInfo(item) {
-  const catImg = item[0];
-  const catInfo = catImg.breeds[0];
-  makeCatCard(catImg, catInfo);
-  makeCatInfoVisible();
-  makeLoadingInvisible();
-}
-
-function showError(error) {
-  if (error) {
-    Notiflix.Notify.failure(
-      'Oops! Something went wrong! Try reloading the page!'
-    );
-    makeLoadingInvisible();
-    console.log(error.message);
-  }
-}
-
-function makeCatCard(catImg, catInfo) {
-  const markUp = `
-  <div class='container'>
-    <img src='${catImg.url}' alt='Cat ${catInfo.name}'/>
-  </div>
-  <div>
-    <h1 class='title'">${catInfo.name}</h1>
-    <p>${catInfo.description}</p>
-    <p class='habits'>${catInfo.temperament}</p>
-  </div>`;
-  refs.catInfoEl.innerHTML = markUp;
-  shownCat = catInfo.id;
-}
-
-function makeLoadingVisible() {
-  refs.loadingEl.classList.remove('is-hidden');
-}
-function makeLoadingInvisible() {
-  refs.loadingEl.classList.add('is-hidden');
-}
-
-function makeCatInfoVisible() {
-  refs.catInfoEl.classList.remove('is-hidden');
-}
-function makeCatInfoInvisible() {
-  refs.catInfoEl.classList.add('is-hidden');
+function markupCatCard({ name, description, temperament, url }) {
+  return `
+    <img src=${url} alt="${name}"/>
+    <div class ='infobox'>
+    <h2>${name}</h2>
+    <p>${description}</p>
+    <p><span>Temperament:</span> ${temperament}</p>`;
 }

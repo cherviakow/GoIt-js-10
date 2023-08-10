@@ -7,8 +7,7 @@ const catInfoRef = document.querySelector('.cat-info');
 const loaderRef = document.querySelector('.loader');
 const errorRef = document.querySelector('.error');
 
-errorRef.classList.add('is-hidden');
-
+errorRef.classList.add('hide');
 breedSelectRef.addEventListener('change', selectCat);
 
 loadBreeds();
@@ -17,7 +16,7 @@ function selectCat(event) {
   catInfoRef.innerHTML = '';
   loaderRef.classList.remove('hide');
 
- 
+
   fetchCatByBreed(event.target.value)
     .then(({ data }) => {
       let { name, description, temperament } = data[0].breeds[0];
@@ -37,12 +36,13 @@ function selectCat(event) {
       )
     )
     .finally(loaderRef.classList.add('hide'));
-  
+
 }
 
 function loadBreeds() {
   loaderRef.classList.remove('hide');
 
+ 
   return fetchBreeds()
     .then(({ data }) => {
       breedSelectRef.classList.remove('hide');

@@ -83,6 +83,6 @@ body {
     display: none;
   }
   
-  /* .error {
+  .error {
     color: red;
-  } */
+  }
